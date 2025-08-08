@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile & Cart Test</title>
+</head>
+<body>
+  <h1>User Profile</h1>
+  <p id="profile"></p>
+
+  <hr>
+
+  <h2>Test Add to Cart</h2>
+  <label>
+    Product ID:
+    <input type="number" id="productId" value="1">
+  </label>
+  <br><br>
+  <label>
+    Quantity:
+    <input type="number" id="quantity" value="2">
+  </label>
+  <br><br>
+  <button id="addBtn">Add to Cart</button>
+  <p id="cartResult"></p>
+
+  <hr>
+
+  <h2>All Cart Items</h2>
+  <button id="loadItemsBtn">Load Cart Items</button>
+  <ul id="cartItemsList"></ul>
+
+  <script>
+    // Load user profile
+    async function loadProfile() {
+      try {
+        const res = await fetch("http://localhost:8080/api/user/profile", {
+          method: "GET",
+          credentials: "include"
+        });
+
+        if (!res.ok) {
+          document.getElementById("profile").textContent = "Failed to load profile.";
+          return;
+        }
+
+        const text = await res.text(); // plain text response
+        document.getElementById("profile").textContent = text;
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("profile").textContent = "Error loading profile.";
+      }
+    }
+
+    // Add to Cart
+    document.getElementById("addBtn").addEventListener("click", async () => {
+      const productId = document.getElementById("productId").value;
+      const quantity = document.getElementById("quantity").value;
+
+      try {
+        const res = await fetch(`http://localhost:8080/add?productId=${productId}&quantity=${quantity}`, {
+          method: "POST",
+          credentials: "include"
+        });
+
+        const text = await res.text();
+        document.getElementById("cartResult").textContent = `Server response: ${text}`;
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("cartResult").textContent = "Error calling addToCart.";
+      }
+    });
+
+    // Load All Cart Items
+    document.getElementById("loadItemsBtn").addEventListener("click", async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/cart/allitems", {
+          method: "GET",
+          credentials: "include"
+        });
+
+        if (!res.ok) {
+          document.getElementById("cartItemsList").innerHTML = "<li>Failed to load items</li>";
+          return;
+        }
+
+        const items = await res.json();
+        const list = document.getElementById("cartItemsList");
+        list.innerHTML = "";
+
+        if (items.length === 0) {
+          list.innerHTML = "<li>No items in cart</li>";
+          return;
+        }
+
+        items.forEach(item => {
+          const li = document.createElement("li");
+          li.textContent = `Product: ${item.product.name} | Quantity: ${item.quantity}`;
+          list.appendChild(li);
+        });
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("cartItemsList").innerHTML = "<li>Error loading items</li>";
+      }
+    });
+
+    // Load profile on page load
+    loadProfile();
+  </script>
+</body>
+</html>

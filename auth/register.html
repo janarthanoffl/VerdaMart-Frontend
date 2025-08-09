@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account</title>
+  <style>
+    /* --- Shared look with Login page --- */
+    body{
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      height:100vh; margin:0;
+      display:flex; justify-content:center; align-items:center;
+    }
+    .auth-card{
+      background:#fff; padding:2rem; width:340px;
+      border-radius:10px; box-shadow:0 8px 20px rgba(0,0,0,.15);
+      animation:fadeIn .3s ease-in-out;
+    }
+    h2{margin-top:0; text-align:center; color:#333;}
+    .form-group{margin-bottom:1rem;}
+    .form-group input{
+      width:100%; padding:10px; font-size:14px;
+      border:1px solid #ccc; border-radius:5px; outline:0;
+      transition:border-color .3s;
+    }
+    .form-group input:focus{border-color:#667eea;}
+    .auth-btn{
+      width:100%; padding:10px; font-size:16px; cursor:pointer;
+      border:0; border-radius:5px; color:#fff; background:#667eea;
+      transition:background .3s;
+    }
+    .auth-btn:hover{background:#556cd6;}
+    .error-message{
+      display:none; color:red; font-size:13px; margin-bottom:.5rem;
+    }
+    .switch-link{
+      margin-top:1rem; text-align:center; font-size:14px;
+    }
+    .switch-link a{color:#667eea; text-decoration:none;}
+    @keyframes fadeIn{from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);}}
+  </style>
+</head>
+<body>
+
+  <div class="auth-card">
+    <h2>Create Account</h2>
+    <div id="errorMsg" class="error-message"></div>
+
+    <form id="registerForm">
+      <div class="form-group">
+        <input type="text" id="username" placeholder="Username" required />
+      </div>
+      <div class="form-group">
+        <input type="password" id="password" placeholder="Password" required />
+      </div>
+      <button type="submit" class="auth-btn">Register</button>
+    </form>
+
+    <div class="switch-link">
+      Already have an account? <a href="login.html">Log in</a>
+    </div>
+  </div>
+
+  <script>
+    const form   = document.getElementById("registerForm");
+    const errorEl= document.getElementById("errorMsg");
+
+    form.addEventListener("submit", async e=>{
+      e.preventDefault();
+      errorEl.style.display="none";
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if(!username || !password){
+        errorEl.textContent="Please enter both username and password.";
+        errorEl.style.display="block";
+        return;
+      }
+
+      try{
+        const res = await fetch("http://localhost:8080/api/auth/register",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          credentials:"include",
+          body:JSON.stringify({username, password})
+        });
+
+        if(res.ok){
+          // Optional: automatically log in or redirect right away
+          window.location.href="login.html";
+        }else{
+          const msg = await res.text();
+          errorEl.textContent="Registration failed: "+msg;
+          errorEl.style.display="block";
+        }
+      }catch(err){
+        console.error("Register request failed:", err);
+        errorEl.textContent="Something went wrong. Please try again.";
+        errorEl.style.display="block";
+      }
+    });
+  </script>
+
+</body>
+</html>
